@@ -8,7 +8,7 @@ export const config = {
   isProd: env.NODE_ENV === 'production',
   port: Number(env.PORT ?? 4000),
   databaseUrl: env.DATABASE_URL ?? 'postgres://edu:edu_dev_pass@localhost:5432/edu',
-  appOrigin: (env.APP_ORIGIN ?? 'http://localhost:5173').split(',').map((s) => s.trim()),
+  appOrigin: (env.APP_ORIGIN ?? env.RENDER_EXTERNAL_URL ?? 'http://localhost:5173').split(',').map((s) => s.trim()),
   uploadDir: path.resolve(env.UPLOAD_DIR ?? './uploads'),
   maxUploadBytes: Number(env.MAX_UPLOAD_MB ?? 25) * 1024 * 1024,
   sessionDays: Number(env.SESSION_DAYS ?? 7),
