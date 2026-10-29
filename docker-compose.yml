@@ -1,0 +1,47 @@
+# Lokal yoki VPS'da to'liq stekni ishga tushirish:
+#   cp .env.example .env   (parollarni o'zgartiring!)
+#   docker compose up -d --build
+#   docker compose exec backend node dist/db/createTeacher.js --username nozimjon --name "Nozimjon" --password "KuchliParol2026"
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: edu
+      POSTGRES_USER: edu
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD .env faylida bo'lishi kerak}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edu -d edu"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://edu:${DB_PASSWORD}@db:5432/edu
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost}
+      UPLOAD_DIR: /data/uploads
+      MAX_UPLOAD_MB: 25
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TRUST_PROXY: 1
+    volumes:
+      - uploads:/data/uploads
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-80}:80"
+
+volumes:
+  pgdata:
+  uploads:
